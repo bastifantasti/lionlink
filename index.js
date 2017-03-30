@@ -7,10 +7,31 @@ const request = require('request');
 const moment = require('moment');
 
 const bodyParser = require("body-parser");
+const mongoose = require('mongoose');
 
 const IMG_TYPE = 'jpg';
 const IMG_QUALITY = 60;
+const IMG_SIZE_X = 1280;
+const IMG_SIZE_Y = 1024;
 
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://heroku_tlfjlb8r:u3io6qf4fa9mco4qonqs15g41g@ds145750.mlab.com:45750/heroku_tlfjlb8r";
+
+mongoose.connect(MONGODB_URI);
+const Schema = mongoose.Schema;
+
+// create a schema
+const linkSchema = new Schema({
+    title: { type: String, required: true },
+    url: { type: String, required: true,unique: true },
+    desc: String,
+    img: String,
+    tags: String,
+    created_at: Date
+});
+
+// the schema is useless so far
+// we need to create a model using it
+const LinkItem = mongoose.model('LinkItem', linkSchema);
 
 /* check domain */
 
@@ -31,18 +52,45 @@ function checkDomain(url) {
     });
 }
 
-function fetchDomain(url) {
-    checkDomain(url).then(function (res) {
-        console.log('take screenshot ... ' + res);
+function fetchDomain(url,title,desc,tags,res) {
+    checkDomain(url).then(function (res3) {
+        console.log('take screenshot ... ' + res3);
         let options = {
             quality: IMG_QUALITY,
-            streamType: IMG_TYPE
+            streamType: IMG_TYPE,
+            screenSize: {
+                width: IMG_SIZE_X,
+                height: IMG_SIZE_Y
+            }
         };
-        let host = urlObj.parse(url).hostname
-        webshot(url, host + '-' + moment().valueOf() + '.' + IMG_TYPE, options, function (err) {
+        let host = urlObj.parse(url).hostname;
+        let now = moment().valueOf();
+        let filename = host + '-' +now + '.' + IMG_TYPE;
+        webshot(url, filename, options, function (err) {
             // screenshot now saved to google.png
 
             console.log('screenshot done ');
+            let link = new LinkItem({
+                title: title,
+                url: url,
+                desc: desc,
+                img: filename,
+                tags: tags,
+                created_at: now
+            });
+            link.save(function(err) {
+                if (err){
+                    res.end('{"failed" : "not saved", "status" : 200}');
+                    console.log(err);
+                } else{
+                    console.log('User saved successfully!');
+
+                    res.end('{"success" : "Updated Successfully", "status" : 200}');
+
+                }
+
+                });
+
         });
     });
     /*
@@ -67,6 +115,7 @@ function fetchDomain(url) {
 app.set('port', (process.env.PORT || 5000));
 
 app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + ''));
 app.use(bodyParser.json());
 
 // views is directory for all template files
@@ -81,12 +130,21 @@ app.post('/addLink',function(req,res){
     desc = req.body.desc;
     tags = req.body.tags;
 
-    fetchDomain(url);
-    res.end("yes");
+    fetchDomain(url,title,desc,tags,res);
+    //res.end("yes");
 });
 
 app.get('/', function (request, response) {
-    response.render('pages/index');
+    LinkItem.find({}, function(err, items) {
+        // object of all the users
+        console.log(items);
+        if(err){
+            response.render('pages/index');
+        }else{
+            response.render('pages/index', {links : items});
+        }
+    });
+
 });
 
 app.listen(app.get('port'), function () {
