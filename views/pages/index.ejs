@@ -9,11 +9,10 @@
 <% include ../partials/nav.ejs %>
 
 <!-- Main jumbotron for a primary marketing message or call to action -->
-<div class="jumbotron">
+<div class="jumbotron" style="background-color: #d42031">
     <div class="container">
         <h1 class="display-3">RROOOAAR!</h1>
-        <p>Submit your Link</p>
-
+        <h3>Submit your Link!</h3>
         <form>
             <label for="url">Your URL</label>
             <div class="input-group">
@@ -29,7 +28,7 @@
             <label class="sr-only" for="tags">Tags</label>
             <input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" id="tags" placeholder="Tags"><br>
 
-            <input class="btn btn-primary btn-lg" type="submit" id="submit" value="Submit">
+            <input class="btn btn-primary btn-lg" type="submit" id="submit" value="Submit" style="background-color: #000;color:#fff;border-color: #fff">
         </form>
     </div>
 </div>
@@ -41,6 +40,7 @@
         <% links.forEach(function(item) { %>
         <div class="col-md-4">
             <h2><%= item.title %></h2>
+            <p class="small"><%= item.created_at %></p>
             <img class="img-fluid img-thumbnail" src="<%= item.img %>">
             <p><%= item.desc %></p>
             <p><%= item.tags %></p>

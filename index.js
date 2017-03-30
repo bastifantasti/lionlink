@@ -5,9 +5,13 @@ const urlObj = require('url');
 
 const request = require('request');
 const moment = require('moment');
+moment.locale('de');
 
 const bodyParser = require("body-parser");
 const mongoose = require('mongoose');
+
+const options = { promiseLibrary: require('bluebird') };
+
 
 const IMG_TYPE = 'jpg';
 const IMG_QUALITY = 60;
@@ -16,7 +20,7 @@ const IMG_SIZE_Y = 1024;
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://heroku_tlfjlb8r:u3io6qf4fa9mco4qonqs15g41g@ds145750.mlab.com:45750/heroku_tlfjlb8r";
 
-mongoose.connect(MONGODB_URI);
+mongoose.connect(MONGODB_URI,options);
 const Schema = mongoose.Schema;
 
 // create a schema
@@ -138,11 +142,29 @@ app.get('/', function (request, response) {
     LinkItem.find({}, function(err, items) {
         // object of all the users
         console.log(items);
+
+
         if(err){
             response.render('pages/index');
         }else{
-            response.render('pages/index', {links : items});
+
+
         }
+    }).sort([['created_at', '-1']]).then(function (items) {
+        for (let key in items) {
+            console.log('in loop: '+key);
+            console.log(items[key].created_at);
+            let date =items[key].created_at;
+
+            let m = moment(date).format('hh:mm:ss DD.MM.YYYY');
+            console.log(m);
+            items[key].created_at =  m;
+
+
+            console.log(items[key].created_at);
+        }
+
+        response.render('pages/index', {links : items});
     });
 
 });
