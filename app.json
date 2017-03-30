@@ -1,0 +1,8 @@
+{
+  "name": "lion link",
+  "description": "link manager",
+  "repository": "https://github.com/bastifantasti/lionlink",
+  "logo": "http://node-js-sample.herokuapp.com/node.svg",
+  "keywords": ["node", "express", "static"],
+  "image": "heroku/nodejs"
+}

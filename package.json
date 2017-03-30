@@ -1,0 +1,27 @@
+{
+  "name": "lionlink",
+  "version": "0.2.5",
+  "description": "link manager",
+  "engines": {
+    "node": "7.5"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ejs": "^2.5.6",
+    "express": "^4.15.2",
+    "webshot": "^0.18.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/heroku/node-js-getting-started"
+  },
+  "keywords": [
+    "node",
+    "heroku",
+    "express"
+  ],
+  "license": "MIT"
+}
