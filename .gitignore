@@ -4,6 +4,8 @@ logs
 npm-debug.log*
 .idea
 *.iml
+/*.jpg
+
 
 # Runtime data
 pids

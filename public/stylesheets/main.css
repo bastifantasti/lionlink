@@ -1,44 +1,49 @@
-.thumb{
-    width: 100%;
+body {
+    font-family: "Source Sans Pro", "Helvetica Neue", Arial;
+
+}
+
+.thumb {
     height: auto;
+    width: 100%;
 }
-.jumbotron {
-    background: #532F8C;
+
+.header {
+    background-color: #d42031;
+    margin-bottom: 2em;
+    margin-top: 3em;
+    padding-bottom: 1em;
     color: white;
-    padding-bottom: 80px;
 }
 
-.jumbotron .btn-primary {
-    background: #845ac7;
-    border-color: #845ac7;
+h1, h2, h3, h4, h5 {
+    font-weight: 400;
 }
 
-.jumbotron .btn-primary:hover {
-    background: #7646c1;
+h1 {
+    font-size: 3em;
 }
 
-.jumbotron p {
-    color: #d9ccee;
-    max-width: 75%;
-    margin: 1em auto 2em;
-}
+.bootstrap-tagsinput span {
+    color: #fff;
+    -moz-border-radius: 10px 10px 10px 10px;
+    border-radius: 10px 10px 10px 10px;
+    border: solid 1px #890c58;
+    background-color: #890c58;
+    padding: 3px;
 
-.navbar + .jumbotron {
-    margin-top: -20px;
 }
-
-.jumbotron .lang-logo {
-    display: block;
-    background: #B01302;
-    border-radius: 50%;
-    overflow: hidden;
-    width: 100px;
-    height: 100px;
-    margin: auto;
-    border: 2px solid white;
+tags {
+    border: 1px solid #fff;
+    background-color: #fff;
 }
+tag{
+    -moz-border-radius: 10px 10px 10px 10px;
+    border-radius: 10px 10px 10px 10px;
+    border: solid 1px #890c58;
+    background-color: #890c58;
 
-.jumbotron .lang-logo img {
-    max-width: 100%;
 }
-
+tags tag > div{
+    color:#fff;
+}

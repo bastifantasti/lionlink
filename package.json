@@ -3,7 +3,8 @@
   "version": "0.2.5",
   "description": "link manager",
   "engines": {
-    "node": "7.5"
+    "node": "7.5",
+    "npm": ">= 4.1.2"
   },
   "main": "index.js",
   "scripts": {
@@ -16,9 +17,17 @@
     "express": "^4.15.2",
     "moment": "^2.18.1",
     "mongoose": "^4.9.2",
+    "node-metainspector": "^1.3.0",
+    "path": "^0.12.7",
     "request": "^2.81.0",
     "url": "^0.11.0",
+    "vue": "^2.2.2",
+    "vue-router": "^2.2.0",
+    "vuex": "^2.2.1",
     "webshot": "^0.18.0"
+  },
+  "devDependencies": {
+    
   },
   "repository": {
     "type": "git",
@@ -29,5 +38,10 @@
     "heroku",
     "express"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ]
 }

@@ -1,3 +1,5 @@
+const path = require('path');
+const serveStatic = require('serve-static');
 const express = require('express');
 const app = express();
 const webshot = require('webshot');
@@ -5,6 +7,7 @@ const urlObj = require('url');
 
 const request = require('request');
 const moment = require('moment');
+const MetaInspector = require('node-metainspector');
 moment.locale('de');
 
 const bodyParser = require("body-parser");
@@ -30,12 +33,26 @@ const linkSchema = new Schema({
     desc: String,
     img: String,
     tags: String,
+    author: String,
+    created_at: Date
+});
+// create a schema
+const tagSchema = new Schema({
+    name: { type: String, required: true,unique: true }
+});
+
+// create a schema
+const authorSchema = new Schema({
+    name: { type: String, required: true,unique: true },
+    email: String,
     created_at: Date
 });
 
 // the schema is useless so far
 // we need to create a model using it
 const LinkItem = mongoose.model('LinkItem', linkSchema);
+const TagItem = mongoose.model('tags', tagSchema);
+const authorItem = mongoose.model('author', authorSchema);
 
 /* check domain */
 
@@ -58,66 +75,80 @@ function checkDomain(url) {
 
 function fetchDomain(url,title,desc,tags,res) {
     checkDomain(url).then(function (res3) {
+
+        // GRAP TITLE AN DESC:
+        let client = new MetaInspector(url, { timeout: 5000 });
         console.log('take screenshot ... ' + res3);
-        let options = {
-            quality: IMG_QUALITY,
-            streamType: IMG_TYPE,
-            screenSize: {
-                width: IMG_SIZE_X,
-                height: IMG_SIZE_Y
-            }
-        };
-        let host = urlObj.parse(url).hostname;
-        let now = moment().valueOf();
-        let filename = host + '-' +now + '.' + IMG_TYPE;
-        webshot(url, filename, options, function (err) {
-            // screenshot now saved to google.png
+        client.on("fetch", function(){
+            console.log("Description: " + client.description);
+            console.log("title: " + client.title);
+            console.log("Images: " + client.images);
+            title = client.title;
+            desc = client.description;
 
-            console.log('screenshot done ');
-            let link = new LinkItem({
-                title: title,
-                url: url,
-                desc: desc,
-                img: filename,
-                tags: tags,
-                created_at: now
-            });
-            link.save(function(err) {
-                if (err){
-                    res.end('{"failed" : "not saved", "status" : 200}');
-                    console.log(err);
-                } else{
-                    console.log('User saved successfully!');
-
-                    res.end('{"success" : "Updated Successfully", "status" : 200}');
-
+            // webshot
+            let options = {
+                quality: IMG_QUALITY,
+                streamType: IMG_TYPE,
+                screenSize: {
+                    width: IMG_SIZE_X,
+                    height: IMG_SIZE_Y
                 }
+            };
+            let host = urlObj.parse(url).hostname;
+            let now = moment().valueOf();
+            let filename = host + '-' +now + '.' + IMG_TYPE;
+            webshot(url, filename, options, function (err) {
+                // screenshot now saved to google.png
+
+                console.log('screenshot done ');
+                let link = new LinkItem({
+                    title: title,
+                    url: url,
+                    desc: desc,
+                    img: filename,
+                    tags: tags,
+                    created_at: now
+                });
+                let data = {
+                  title: title,
+                  url: url,
+                    desc: desc,
+                    tags: client.keywords,
+
+                };
+                link.save(function(err) {
+                    if (err){
+                        console.log(err);
+                        res.end('{"error" : "link already exists", "status" : 418, "data" : '+JSON.stringify(err)+'}');
+                    } else{
+                        console.log('User saved successfully!');
+
+                        res.end('{"success" : "Updated Successfully", "status" : 200, "data" : '+JSON.stringify(data)+'}');
+
+                    }
 
                 });
 
+            });
+
         });
+
+        client.on("error", function(err){
+            res.end('{"error" : "cant fetch url", "status" : 503, "data" : '+JSON.stringify(err)+'}');
+        });
+
+        client.fetch();
+
+
+
+    }, function(reason) {
+        res.end('{"error" : "url didn exist", "status" : 404, "data" : '+JSON.stringify(reason)+'}');
     });
-    /*
-     if (checkDomain(url)) {
-     console.log('take screenshot ... ');
-     let options = {
-     quality: IMG_QUALITY,
-     streamType: IMG_TYPE
-     };
-     let host = urlObj.parse(url).hostname
-     webshot(url, host + '-' + moment().valueOf() + '.' + IMG_TYPE, options, function (err) {
-     // screenshot now saved to google.png
-
-     console.log('screenshot done ');
-     });
-     }
-     */
-
 }
 
 
 app.set('port', (process.env.PORT || 5000));
-
 app.use(express.static(__dirname + '/public'));
 app.use(express.static(__dirname + ''));
 app.use(bodyParser.json());
@@ -138,6 +169,38 @@ app.post('/addLink',function(req,res){
     //res.end("yes");
 });
 
+app.post('/getMeta',function(req,res){
+    let url;
+    console.log(req.body);
+    url = req.body.url;
+    checkDomain(url).then(function (res3) {
+        let client = new MetaInspector(url, { timeout: 5000 });
+        console.log('take screenshot ... ' + res3);
+        client.on("fetch", function(){
+            console.log("Description: " + client.description);
+            console.log("title: " + client.title);
+            console.log("Images: " + client.images);
+            title = client.title;
+            desc = client.description;
+            let data = {
+                title:title,
+                desc:desc
+            };
+            res.end('{"success" : "Updated Successfully", "status" : 200, "data" : '+JSON.stringify(data)+'}');
+        });
+
+        client.on("error", function(err){
+            res.end('{"error" : "cant fetch url", "status" : 503, "data" : '+JSON.stringify(err)+'}');
+        });
+
+        client.fetch();
+
+    }, function(reason) {
+        res.end('{"error" : "url didn exist", "status" : 404, "data" : '+JSON.stringify(reason)+'}');
+    });
+
+});
+
 app.get('/', function (request, response) {
     LinkItem.find({}, function(err, items) {
         // object of all the users
@@ -147,10 +210,22 @@ app.get('/', function (request, response) {
         if(err){
             response.render('pages/index');
         }else{
+            TagItem.find({}, function(err, tags) {
+                // object of all the users
+                console.log(tags);
 
+
+                if(err){
+                    response.render('pages/index', {links : items});
+                }else{
+                    response.render('pages/index', {links : items,tags:tags});
+
+                }
+            });
 
         }
-    }).sort([['created_at', '-1']]).then(function (items) {
+    }).sort([['created_at', '-1']]);
+    /*.then(function (items) {
         for (let key in items) {
             console.log('in loop: '+key);
             console.log(items[key].created_at);
@@ -166,7 +241,7 @@ app.get('/', function (request, response) {
 
         response.render('pages/index', {links : items});
     });
-
+    */
 });
 
 app.listen(app.get('port'), function () {
